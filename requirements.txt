@@ -1,0 +1,9 @@
+streamlit
+python-docx
+crewai
+openai
+langchain-core
+pysqlite3-binary
+llama-index-embeddings-huggingface
+llama-index-llms-replicate
+llama-index
