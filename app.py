@@ -43,7 +43,7 @@ def main():
         
     with st.sidebar:
         with st.form('Gemini/OpenAI/Groq'):
-            model = st.radio('Choose Your LLM', ('OpenAI','Replciate/llama2-70b'))
+            model = st.radio('Choose Your LLM', ('OpenAI','Replicate/llama2-70b'))
             api_key = st.text_input(f'Enter your API key', type="password")
             submitted = st.form_submit_button("Submit")
 
@@ -62,7 +62,7 @@ def main():
             mod = 'OpenAI'
 
 
-        elif model == 'Replciate/llama2-70b':
+        elif model == 'Replicate/llama2-70b':
             async def setup_llama():
                 loop = asyncio.get_event_loop()
                 if loop is None:
