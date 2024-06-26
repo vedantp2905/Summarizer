@@ -41,8 +41,8 @@ def main():
     st.header('Summary Generator')
         
     with st.sidebar:
-        with st.form('Gemini/OpenAI/Groq'):
-            model = st.radio('Choose Your LLM', ('OpenAI','Replicate/llama2-70b'))
+        with st.form('OpenAI,llama2-70B'):
+            model = st.radio('Choose Your LLM', ('OpenAI','Replicate/llama2-70B'))
             api_key = st.text_input(f'Enter your API key', type="password")
             submitted = st.form_submit_button("Submit")
 
@@ -61,7 +61,7 @@ def main():
             mod = 'OpenAI'
 
 
-        elif model == 'Replicate/llama2-70b':
+        elif model == 'Replicate/llama2-70B':
             async def setup_llama():
                 loop = asyncio.get_event_loop()
                 if loop is None:
@@ -79,28 +79,51 @@ def main():
             llm = asyncio.run(setup_llama())
             mod = 'llama'
 
+        
+        upload_directory = "Saved Files"
+        if not os.path.exists(upload_directory):
+            os.makedirs(upload_directory)
+
+        uploaded_files = []
+
+        if 'files' not in st.session_state:
+            st.session_state['files'] = []
+
+        # File uploader
+        uploaded_file = st.file_uploader("Choose a PDF file", type="pdf", key='file_uploader')
+        if uploaded_file is not None:
+            st.session_state['files'].append(uploaded_file)
+
+        # Done button
+        if st.button("Done"):
+            # Save files to the directory
+            for file in st.session_state['files']:
+                with open(os.path.join(upload_directory, file.name), "wb") as f:
+                    f.write(file.getbuffer())
+            st.success("Files have been uploaded successfully!")
+            st.session_state['files'] = []  # Reset the list after saving
             
-        if st.button("Generate Content"):
+            
             with st.spinner("Generating content..."):
-                generated_content = generate_text(llm)
+                    generated_content = generate_text(llm)
 
-                st.markdown(generated_content)
+                    st.markdown(generated_content)
 
-                doc = Document()
+                    doc = Document()
 
-                # Option to download content as a Word document
-                doc.add_heading('Summary', 0)
-                doc.add_paragraph(generated_content)
+                    # Option to download content as a Word document
+                    doc.add_heading('Summary', 0)
+                    doc.add_paragraph(generated_content)
 
-                buffer = BytesIO()
-                doc.save(buffer)
-                buffer.seek(0)
+                    buffer = BytesIO()
+                    doc.save(buffer)
+                    buffer.seek(0)
 
-                st.download_button(
-                    label="Download as Word Document",
-                    data=buffer,
-                    file_name=f"Summary.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                )
+                    st.download_button(
+                        label="Download as Word Document",
+                        data=buffer,
+                        file_name=f"Summary.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
 if __name__ == "__main__":
     main()
