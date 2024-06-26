@@ -2,7 +2,6 @@ from io import BytesIO
 import os
 import asyncio
 from docx import Document
-from langchain_openai import ChatOpenAI
 import streamlit as st
 from crewai import Agent, Task, Crew
 from llama_index.core import VectorStoreIndex,SimpleDirectoryReader, Settings
