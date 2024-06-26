@@ -2,10 +2,8 @@ from io import BytesIO
 import os
 import asyncio
 from docx import Document
-from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 import streamlit as st
-from langchain_google_genai import ChatGoogleGenerativeAI
 from crewai import Agent, Task, Crew
 from llama_index.core import VectorStoreIndex,SimpleDirectoryReader, Settings
 from llama_index.core.node_parser import SentenceSplitter
