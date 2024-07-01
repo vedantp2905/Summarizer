@@ -9,3 +9,4 @@ llama-index-llms-replicate
 llama-index
 replicate
 llama_parse
+embedchain
