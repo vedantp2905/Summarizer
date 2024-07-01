@@ -11,3 +11,4 @@ replicate
 llama_parse
 embedchain
 langchain-community
+sqlite3
