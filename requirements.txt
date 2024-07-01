@@ -10,4 +10,3 @@ llama-index
 replicate
 llama_parse
 embedchain
-langchain-community
