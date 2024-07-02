@@ -2,32 +2,31 @@ from io import BytesIO
 import os
 import asyncio
 from docx import Document
-import pandas as pd
 from langchain_openai import ChatOpenAI
 import streamlit as st
 from crewai import Agent, Task, Crew
 from llama_index.core import VectorStoreIndex, Settings
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.llms.replicate import Replicate
-from unstructured.partition.auto import partition
+from llama_parse import LlamaParse
 
-def load_data(file_path):
-    
-    return partition(file_path,strategy="hi_res")
+def init_parser(api_key):
+    return(LlamaParse(api_key=api_key,result_type="markdown", verbose=True))
 
-def generate_text(data, llm, mode):
+def generate_text(parser,llm, file_path):
     Settings.chunk_size = 512
-    documents = [{"text": elem.text if isinstance(elem, dict) else elem['text'], "metadata": {}} for elem in data]
 
-    if mode == 'OpenAI':
+    if mod == 'OpenAI':
+        documents = parser.load_data(file_path)
         index = VectorStoreIndex.from_documents(documents, transformations=[SentenceSplitter(chunk_size=512)])
         query_engine = index.as_query_engine()
         result = query_engine.query("Could you summarize the given context? Return your response which covers the key points of the text and does not miss anything important, please.")
         
-    elif mode == 'llama':
+    elif mod == 'llama':
         Settings.llm = llm
         Settings.embed_model = "local:BAAI/bge-small-en-v1.5"
     
+        documents = parser.load_data(file_path)
         index = VectorStoreIndex.from_documents(documents, transformations=[SentenceSplitter(chunk_size=512)])
         query_engine = index.as_query_engine()
         result = query_engine.query("Could you summarize the given context? Return your response which covers the key points of the text and does not miss anything important, please.")
@@ -77,6 +76,7 @@ def main():
         with st.form('OpenAI,llama2-70B'):
             model = st.radio('Choose Your LLM', ('OpenAI','Replicate/llama2-70B'))
             api_key = st.text_input(f'Enter your API key', type="password")
+            llamaindex_api_key = st.text_input(f'Enter your llamaParse API key', type="password")
             submitted = st.form_submit_button("Submit")
 
     if api_key:
@@ -113,13 +113,15 @@ def main():
             llm = asyncio.run(setup_llama())
             mod = 'llama'
 
+        parser = init_parser(llamaindex_api_key)
+        
         upload_directory = "Saved Files"
         if not os.path.exists(upload_directory):
             os.makedirs(upload_directory)
 
         # File uploader for multiple files
 
-        uploaded_files = st.file_uploader("Choose files", type=None, accept_multiple_files=True)
+        uploaded_files = st.file_uploader("Choose PDF files", type=None, accept_multiple_files=True)
 
         if uploaded_files and st.button("Process Files"):
             st.session_state.summaries = []  # Clear previous summaries
@@ -131,8 +133,7 @@ def main():
                         f.write(file.getbuffer())
                     
                     # Generate and format content
-                    data = load_data(temp_file_path)
-                    generated_content = generate_text(data, llm, mod)
+                    generated_content = generate_text(parser,llm, temp_file_path)
                     formatted_content = formatter(generated_content, llm)
 
                     # Store the summary in session state
