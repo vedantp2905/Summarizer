@@ -10,6 +10,3 @@ llama-index
 replicate
 llama_parse
 embedchain
-unstructured[all-docs]
-unstructured
-psutil
