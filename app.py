@@ -121,7 +121,7 @@ def main():
 
         # File uploader for multiple files
 
-        uploaded_files = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
+        uploaded_files = st.file_uploader("Choose PDF files", type=None, accept_multiple_files=True)
 
         if uploaded_files and st.button("Process Files"):
             st.session_state.summaries = []  # Clear previous summaries
