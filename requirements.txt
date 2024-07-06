@@ -11,4 +11,3 @@ llama_parse
 embedchain
 llama-index-llms-langchain
 llama-index-llms-fireworks
-python-dotenv
