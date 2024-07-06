@@ -9,3 +9,4 @@ langchain-google-genai
 llama-index
 llama_parse
 embedchain
+llama-index-llms-langchain
