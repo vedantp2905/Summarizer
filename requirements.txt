@@ -5,8 +5,7 @@ openai
 langchain-core
 pysqlite3-binary
 llama-index-embeddings-huggingface
-llama-index-llms-replicate
+langchain-google-genai
 llama-index
-replicate
 llama_parse
 embedchain
