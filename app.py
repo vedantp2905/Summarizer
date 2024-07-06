@@ -26,7 +26,7 @@ def generate_text(parser, llm, file_path):
     documents = parser.load_data(file_path)
     index = VectorStoreIndex.from_documents(documents, transformations=[SentenceSplitter(chunk_size=512)])
     query_engine = index.as_query_engine()
-    result = query_engine.query("Could you summarize the given context? Return your response which covers the key points of the text and does not miss anything important, please.")
+    result = query_engine.query("Could you very concisely summarize the given content? Return your response which covers the key points of the text and does not miss anything important, please.")
     
     return result['text'] if isinstance(result, dict) and 'text' in result else str(result)
 
