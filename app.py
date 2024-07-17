@@ -5,6 +5,7 @@ from docx import Document
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 import pandas as pd
+import requests
 import streamlit as st
 from crewai import Agent, Task, Crew
 from llama_index.core import VectorStoreIndex, Settings
@@ -12,6 +13,42 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_parse import LlamaParse
 import nest_asyncio
 nest_asyncio.apply()
+
+def verify_gemini_api_key(api_key):
+    API_VERSION = 'v1'
+    api_url = f"https://generativelanguage.googleapis.com/{API_VERSION}/models?key={api_key}"
+    
+    try:
+        response = requests.get(api_url, headers={'Content-Type': 'application/json'})
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        
+        # If we get here, it means the request was successful
+        return True
+    
+    except requests.exceptions.HTTPError as e:
+        
+        return False
+    
+    except requests.exceptions.RequestException as e:
+        # For any other request-related exceptions
+        raise ValueError(f"An error occurred: {str(e)}")
+
+def verify_gpt_api_key(api_key):
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    # Using a simple request to the models endpoint
+    response = requests.get("https://api.openai.com/v1/models", headers=headers)
+    
+    if response.status_code == 200:
+        return True
+    elif response.status_code == 401:
+        return False
+    else:
+        print(f"Unexpected status code: {response.status_code}")
+        return False
 
 def init_parser(api_key):
     return(LlamaParse(api_key=api_key,result_type="markdown", verbose=True))
@@ -78,13 +115,14 @@ async def process_all_files(files, parser, llm, upload_directory):
 def main():
     global mod
     mod = None
-
+    validity_model = False
+     
     st.header('Summary Generator') 
     
     # Initialize session state for storing summaries
     if 'summaries' not in st.session_state:
         st.session_state.summaries = []
-        
+          
     with st.sidebar:
         with st.form('OpenAI,Gemini'):
             model = st.radio('Choose Your LLM', ('OpenAI','Gemini'))
@@ -92,7 +130,21 @@ def main():
             llamaindex_api_key = st.text_input(f'Enter your llamaParse API key', type="password")
             submitted = st.form_submit_button("Submit")
 
-    if api_key:
+        if api_key and llamaindex_api_key:
+            if model == "Gemini":
+                validity_model = verify_gemini_api_key(api_key)
+                if validity_model ==True:
+                    st.write(f"Valid {model} API key")
+                else:
+                    st.write(f"Invalid {model} API key")
+            elif model == "OpenAI":
+                validity_model = verify_gpt_api_key(api_key)
+                if validity_model ==True:
+                    st.write(f"Valid {model} API key")
+                else:
+                    st.write(f"Invalid {model} API key")   
+                                     
+    if validity_model and llamaindex_api_key:
         if model == 'OpenAI':
             async def setup_OpenAI():
                 loop = asyncio.get_event_loop()
@@ -136,36 +188,31 @@ def main():
         uploaded_files = st.file_uploader("Choose files", type=None, accept_multiple_files=True)
 
         if uploaded_files and st.button("Process Files"):
-            with st.spinner("Generating summaries for all files..."):
-                # Use asyncio.run to properly execute the asynchronous function
-                summaries = asyncio.run(process_all_files(uploaded_files, parser, llm, upload_directory))
+            if not st.session_state.summaries:  
+                with st.spinner("Generating summaries for all files..."):
+                    st.session_state.summaries = asyncio.run(process_all_files(uploaded_files, parser, llm, upload_directory))
+            
+            if st.session_state.summaries:
+                # Display summaries in a table
+                df = pd.DataFrame(st.session_state.summaries)
+                st.table(df)
                 
-                if summaries and isinstance(summaries, list) and all(isinstance(item, dict) for item in summaries):
-
-                # Convert summaries to DataFrame for table display
-                    df = pd.DataFrame(summaries)
-
-                    # Display summaries in a table
-                    st.table(df)
-                    
-                    # Create a single Word document with all summaries
-                    doc = Document()
-                    for summary in summaries:
-                        doc.add_heading(f'Summary for {summary["File Name"]}', level=1)
-                        doc.add_paragraph(summary['Summary'])
-                        doc.add_page_break()
-                    
-                    buffer = BytesIO()
-                    doc.save(buffer)
-                    buffer.seek(0)
-                    
-                    # Download button for all summaries
-                    st.download_button(
-                        label="Download All Summaries as Word Document",
-                        data=buffer,
-                        file_name="All_Summaries.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    )
+                doc = Document()
+                for summary in st.session_state.summaries:
+                    doc.add_heading(f'Summary for {summary["File Name"]}', level=1)
+                    doc.add_paragraph(summary['Summary'])
+                    doc.add_page_break()
+                
+                buffer = BytesIO()
+                doc.save(buffer)
+                buffer.seek(0)
+                
+                st.download_button(
+                    label="Download All Summaries as Word Document",
+                    data=buffer,
+                    file_name="All_Summaries.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
 
 if __name__ == "__main__":
     main()
