@@ -6,7 +6,7 @@ langchain-core
 pysqlite3-binary
 llama-index-embeddings-huggingface
 langchain-google-genai
-llama-index = 0.10.52
+llama-index == 0.10.52
 llama_parse
 embedchain
 llama-index-llms-langchain
