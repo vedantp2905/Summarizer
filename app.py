@@ -125,7 +125,7 @@ def main():
           
     with st.sidebar:
         with st.form('OpenAI,Gemini'):
-            model = st.radio('Choose Your LLM', ('OpenAI','Gemini'))
+            model = st.radio('Choose Your LLM', ('Gemini','OpenAI'))
             api_key = st.text_input(f'Enter your API key', type="password")
             llamaindex_api_key = st.text_input(f'Enter your llamaParse API key', type="password")
             submitted = st.form_submit_button("Submit")
