@@ -1,13 +1,13 @@
-streamlit
+streamlit==1.36.0
 python-docx
-crewai
-openai
-langchain-core
+crewai==0.30.11
+openai==1.31.0
+langchain-core==0.1.52
 pysqlite3-binary
-llama-index-embeddings-huggingface
-langchain-google-genai
+llama-index-embeddings-huggingface==0.2.2
+langchain-google-genai==1.0.4
 llama-index == 0.10.52
-llama_parse
-embedchain
-llama-index-llms-langchain
-llama-index-llms-fireworks
+llama_parse==0.4.4
+embedchain==0.1.102
+llama-index-llms-langchain==0.1.4
+llama-index-llms-fireworks==0.1.5
